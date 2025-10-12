@@ -1,0 +1,16 @@
+{
+    "name": "complaint-box",
+    "version": "1.0.0",
+    "description": "A simple complaint collection website using Node.js and SQLite.",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "init-db": "node database.js"
+    },
+    "dependencies": {
+        "express": "^4.19.2",
+        "sqlite3": "^5.1.7",
+        "cors": "^2.8.5",
+        "express-basic-auth": "^1.2.1"
+    }
+}

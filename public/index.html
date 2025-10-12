@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Submit a Complaint</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            body {
+                font-family: "Inter", sans-serif;
+            }
+        </style>
+    </head>
+    <body
+        class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen"
+    >
+        <div
+            class="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 md:p-12"
+        >
+            <div id="form-container">
+                <h1 class="text-3xl font-bold mb-2 text-center text-gray-900">
+                    Complaint Box
+                </h1>
+                <p class="text-center text-gray-500 mb-8">
+                    We value your feedback. Please let us know what's on your
+                    mind.
+                </p>
+
+                <form id="complaintForm">
+                    <div class="mb-6">
+                        <label
+                            for="complaintText"
+                            class="block mb-2 text-sm font-medium text-gray-700"
+                            >Your Complaint</label
+                        >
+                        <textarea
+                            id="complaintText"
+                            rows="6"
+                            class="w-full p-4 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                            placeholder="Please describe your issue in detail..."
+                            required
+                        ></textarea>
+                    </div>
+                    <button
+                        type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-200 ease-in-out transform hover:-translate-y-0.5"
+                    >
+                        Submit Complaint
+                    </button>
+                </form>
+            </div>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="hidden text-center">
+                <svg
+                    class="mx-auto mb-4 w-16 h-16 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
+                </svg>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                    Thank You!
+                </h2>
+                <p class="text-gray-600">
+                    Your complaint has been submitted successfully.
+                </p>
+                <button
+                    onclick="resetForm()"
+                    class="mt-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
+                >
+                    Submit Another
+                </button>
+            </div>
+        </div>
+
+        <script>
+            const form = document.getElementById("complaintForm");
+            const formContainer = document.getElementById("form-container");
+            const successMessage = document.getElementById("successMessage");
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const complaintText =
+                    document.getElementById("complaintText").value;
+
+                try {
+                    const response = await fetch("/api/complaints", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ complaint: complaintText }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(
+                            errorData.error || "Something went wrong"
+                        );
+                    }
+
+                    // Show success message and hide form
+                    formContainer.classList.add("hidden");
+                    successMessage.classList.remove("hidden");
+                } catch (error) {
+                    console.error("Submission error:", error);
+                    alert(`Error: ${error.message}`);
+                }
+            });
+
+            function resetForm() {
+                document.getElementById("complaintText").value = "";
+                formContainer.classList.remove("hidden");
+                successMessage.classList.add("hidden");
+            }
+        </script>
+    </body>
+</html>
