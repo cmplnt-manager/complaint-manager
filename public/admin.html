@@ -3,103 +3,202 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Admin - View Complaints</title>
+        <title>Admin - Complaint Viewer</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             body {
                 font-family: "Inter", sans-serif;
             }
+            .complaint-item {
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                background-color: white;
+                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+                    0 1px 2px 0 rgba(0, 0, 0, 0.06);
+                transition: opacity 0.3s ease;
+            }
+            .complaint-item.resolved {
+                opacity: 0.6;
+                background-color: #f7fafc;
+            }
+            .complaint-item.resolved .content p {
+                text-decoration: line-through;
+            }
+            .complaint-item .content {
+                margin-bottom: 1rem;
+            }
+            .complaint-item .actions button {
+                padding: 0.5rem 1rem;
+                border-radius: 0.375rem;
+                border: none;
+                color: white;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            }
+            .btn-delete {
+                background-color: #ef4444;
+            }
+            .btn-delete:hover {
+                background-color: #dc2626;
+            }
+            .btn-resolve {
+                background-color: #22c55e;
+            }
+            .btn-resolve:hover {
+                background-color: #16a34a;
+            }
+            .btn-reopen {
+                background-color: #f97316;
+            }
+            .btn-reopen:hover {
+                background-color: #ea580c;
+            }
+            audio {
+                width: 100%;
+                margin-top: 0.5rem;
+            }
         </style>
     </head>
-    <body class="bg-gray-100">
-        <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-3xl font-bold text-gray-800">
-                    Complaint Dashboard
-                </h1>
-                <button
-                    onclick="window.location.href='/'"
-                    class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition"
-                >
-                    Go to Public Page
-                </button>
-            </div>
-            <div class="bg-white p-6 rounded-2xl shadow-lg">
-                <div class="space-y-4" id="complaintsList">
-                    <!-- Complaints will be loaded here -->
-                    <p class="text-gray-500">Loading complaints...</p>
-                </div>
+    <body class="bg-gray-100 p-4 sm:p-8">
+        <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                Admin Dashboard
+            </h1>
+            <p class="text-gray-600 mb-6">
+                All submitted complaints are listed below.
+            </p>
+            <div id="complaint-list">
+                <p>Loading complaints...</p>
             </div>
         </div>
 
         <script>
+            document.addEventListener("DOMContentLoaded", fetchComplaints);
+
             async function fetchComplaints() {
                 try {
                     const response = await fetch("/api/complaints");
                     if (response.status === 401) {
                         alert(
-                            "Authentication failed. Please refresh and log in again."
+                            "Authentication failed. Please refresh and enter correct credentials."
                         );
                         return;
                     }
                     if (!response.ok) {
                         throw new Error(
-                            `Failed to fetch complaints. Status: ${response.status}`
+                            `HTTP error! status: ${response.status}`
                         );
                     }
                     const complaints = await response.json();
                     displayComplaints(complaints);
                 } catch (error) {
-                    document.getElementById(
-                        "complaintsList"
-                    ).innerHTML = `<p class="text-red-500 font-semibold">Error: ${error.message}</p>`;
+                    console.error("Failed to fetch complaints:", error);
+                    document.getElementById("complaint-list").innerHTML =
+                        '<p class="text-red-500">Failed to load complaints.</p>';
                 }
             }
 
             function displayComplaints(complaints) {
-                const list = document.getElementById("complaintsList");
+                const list = document.getElementById("complaint-list");
+                list.innerHTML = "";
+
                 if (complaints.length === 0) {
                     list.innerHTML =
-                        '<p class="text-gray-500">No complaints have been submitted yet.</p>';
+                        "<p>No complaints have been submitted yet.</p>";
                     return;
                 }
 
-                // Generate the HTML for each complaint
-                list.innerHTML = complaints
-                    .map((complaint) => {
-                        let contentHtml = "";
-                        // Explicitly check the type and generate the correct HTML
-                        if (complaint.type === "voice" && complaint.filePath) {
-                            contentHtml = `
-                        <div class="mt-2">
-                            <p class="font-medium text-gray-700 mb-1">Voice Complaint:</p>
-                            <audio controls src="${complaint.filePath}" class="w-full sm:w-auto">
-                                Your browser does not support the audio element.
-                            </audio>
-                        </div>`;
-                        } else {
-                            // Default to showing text, handles 'text' type
-                            contentHtml = `<p class="text-gray-700 bg-gray-50 p-3 rounded-md break-words">${
-                                complaint.complaint || "No text content."
-                            }</p>`;
-                        }
+                // Sort complaints to show 'resolved' at the bottom
+                complaints.sort((a, b) => {
+                    if (a.status === "resolved" && b.status !== "resolved")
+                        return 1;
+                    if (a.status !== "resolved" && b.status === "resolved")
+                        return -1;
+                    return b.id - a.id; // Show newest first for same-status items
+                });
 
-                        return `
-                <div class="border border-gray-200 rounded-lg p-4 transition hover:shadow-md">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-grow">
-                            <p class="font-semibold text-gray-800">Complaint #${complaint.id}</p>
-                            <p class="text-sm text-gray-500 mb-3">Received on: ${complaint.timestamp}</p>
-                            ${contentHtml}
-                        </div>
+                complaints.forEach((complaint) => {
+                    const item = document.createElement("div");
+                    item.className = "complaint-item";
+                    item.id = `complaint-${complaint.id}`;
+                    if (complaint.status === "resolved") {
+                        item.classList.add("resolved");
+                    }
+
+                    let contentHtml = "";
+                    // CORRECTED THIS LINE: Used .filepath (lowercase) instead of .filePath
+                    if (complaint.type === "voice" && complaint.filepath) {
+                        contentHtml = `
+                        <p class="font-semibold">Voice Complaint:</p>
+                        <audio controls src="${complaint.filepath}"></audio>
+                    `;
+                    } else {
+                        contentHtml = `<p>${
+                            complaint.complaint || "No text content."
+                        }</p>`;
+                    }
+
+                    let resolveButtonHtml = "";
+                    if (complaint.status === "open") {
+                        resolveButtonHtml = `<button onclick="updateStatus(${complaint.id}, 'resolved')" class="btn-resolve">Mark as Resolved</button>`;
+                    } else {
+                        resolveButtonHtml = `<button onclick="updateStatus(${complaint.id}, 'open')" class="btn-reopen">Re-open</button>`;
+                    }
+
+                    item.innerHTML = `
+                    <div class="content">
+                        <p class="text-sm text-gray-500 mb-2"><strong>ID:</strong> ${complaint.id} | <strong>Logged:</strong> ${complaint.timestamp}</p>
+                        ${contentHtml}
                     </div>
-                </div>`;
-                    })
-                    .join("");
+                    <div class="actions flex space-x-2">
+                        <button onclick="deleteComplaint(${complaint.id})" class="btn-delete">Delete</button>
+                        ${resolveButtonHtml}
+                    </div>
+                `;
+                    list.appendChild(item);
+                });
             }
 
-            // Fetch complaints when the page loads
-            document.addEventListener("DOMContentLoaded", fetchComplaints);
+            async function deleteComplaint(id) {
+                if (
+                    !confirm(
+                        `Are you sure you want to delete complaint #${id}?`
+                    )
+                ) {
+                    return;
+                }
+                try {
+                    const response = await fetch(`/api/complaints/${id}`, {
+                        method: "DELETE",
+                    });
+                    if (!response.ok) throw new Error("Failed to delete.");
+                    document.getElementById(`complaint-${id}`).remove();
+                } catch (error) {
+                    console.error("Delete error:", error);
+                    alert("Could not delete the complaint.");
+                }
+            }
+
+            async function updateStatus(id, status) {
+                try {
+                    const response = await fetch(
+                        `/api/complaints/${id}/status`,
+                        {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ status }),
+                        }
+                    );
+                    if (!response.ok)
+                        throw new Error("Failed to update status.");
+                    fetchComplaints(); // Refresh the list to re-sort and re-style
+                } catch (error) {
+                    console.error("Update status error:", error);
+                    alert("Could not update the complaint status.");
+                }
+            }
         </script>
     </body>
 </html>
