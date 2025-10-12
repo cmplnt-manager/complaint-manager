@@ -1,52 +1,37 @@
+require("dotenv").config(); // Load environment variables from .env file
+
 const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
+const { Pool } = require("pg");
 const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
 const basicAuth = require("express-basic-auth");
 const nodemailer = require("nodemailer");
+const cloudinary = require("cloudinary").v2;
+const streamifier = require("streamifier");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// --- Database Connection ---
-const db = new sqlite3.Database("./complaints.db", (err) => {
-    if (err) {
-        console.error("Error connecting to the database:", err.message);
-    } else {
-        console.log(
-            "Successfully connected to the SQLite database for server operations."
-        );
-    }
+// --- Supabase PostgreSQL Database Connection ---
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+});
+
+// --- Cloudinary Configuration ---
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // --- Middleware ---
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// --- Nodemailer Setup ---
-// IMPORTANT: Replace with your actual email service credentials
-// For security, use environment variables in a real application
-const transporter = nodemailer.createTransport({
-    service: "gmail", // e.g., 'gmail', 'outlook'
-    auth: {
-        user: "your_email@example.com",
-        pass: "your_email_password",
-    },
-});
-
-// --- Multer Configuration for File Uploads ---
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "uploads/");
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        cb(null, "complaint-" + uniqueSuffix + ".webm");
-    },
-});
+// --- Multer Configuration (to handle file in memory) ---
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // --- Admin Authentication ---
@@ -56,38 +41,51 @@ const adminAuthenticator = basicAuth({
     realm: "Admin Area",
 });
 
+// --- Helper for IST Timestamps ---
+function getIndianTimestamp() {
+    return new Date().toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour12: true,
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    });
+}
+
 // --- API Routes ---
 
-// GET all complaints (for admin)
-app.get("/api/complaints", adminAuthenticator, (req, res) => {
-    db.all("SELECT * FROM complaints ORDER BY id DESC", [], (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json(rows);
-    });
+// GET all complaints
+app.get("/api/complaints", adminAuthenticator, async (req, res) => {
+    try {
+        const result = await pool.query(
+            "SELECT * FROM complaints ORDER BY id DESC"
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // POST a new text complaint
-app.post("/api/complaints", (req, res) => {
+app.post("/api/complaints", async (req, res) => {
     const { complaint } = req.body;
     if (!complaint) {
         return res.status(400).json({ error: "Complaint text is required." });
     }
-    const timestamp = new Date().toLocaleString();
-    const sql = `INSERT INTO complaints (complaint, type, timestamp) VALUES (?, 'text', ?)`;
+    const timestamp = getIndianTimestamp();
+    const sql = `INSERT INTO complaints (complaint, type, timestamp, status) VALUES ($1, 'text', $2, 'open') RETURNING id`;
 
-    db.run(sql, [complaint, timestamp], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        // sendEmailNotification(
-        //     `New text complaint submitted.`,
-        //     `Details: ${complaint}`
-        // );
-        res.status(201).json({ id: this.lastID });
-    });
+    try {
+        const result = await pool.query(sql, [complaint, timestamp]);
+        res.status(201).json({ id: result.rows[0].id });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // POST a new voice complaint
@@ -95,38 +93,89 @@ app.post("/api/complaints/voice", upload.single("complaint"), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: "Audio file is required." });
     }
-    const filePath = `/uploads/${req.file.filename}`;
-    const timestamp = new Date().toLocaleString();
-    const sql = `INSERT INTO complaints (type, filePath, timestamp) VALUES ('voice', ?, ?)`;
 
-    db.run(sql, [filePath, timestamp], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
+    const uploadStream = cloudinary.uploader.upload_stream(
+        { resource_type: "video" },
+        async (error, result) => {
+            if (error) {
+                console.error("Cloudinary upload error:", error);
+                return res
+                    .status(500)
+                    .json({ error: "Failed to upload voice message." });
+            }
+
+            const filePath = result.secure_url;
+            const timestamp = getIndianTimestamp();
+            const sql = `INSERT INTO complaints (type, filePath, timestamp, status) VALUES ('voice', $1, $2, 'open') RETURNING id`;
+
+            try {
+                const dbResult = await pool.query(sql, [filePath, timestamp]);
+                res.status(201).json({
+                    id: dbResult.rows[0].id,
+                    path: filePath,
+                });
+            } catch (dbError) {
+                console.error("Database error after upload:", dbError);
+                res.status(500).json({ error: dbError.message });
+            }
         }
-        // sendEmailNotification(
-        //     `New voice complaint submitted.`,
-        //     `Audio file available at: ${filePath}`
-        // );
-        res.status(201).json({ id: this.lastID, path: filePath });
-    });
+    );
+
+    streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
 });
 
-// --- Email Helper Function ---
-function sendEmailNotification(subject, text) {
-    const mailOptions = {
-        from: "your_email@example.com",
-        to: "recipient_email@example.com", // The admin's email
-        subject: subject,
-        text: text,
-    };
+// DELETE a complaint by ID
+app.delete("/api/complaints/:id", adminAuthenticator, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const fileResult = await pool.query(
+            "SELECT filePath FROM complaints WHERE id = $1 AND type = 'voice'",
+            [id]
+        );
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return console.log("Error sending email:", error);
+        if (fileResult.rows.length > 0 && fileResult.rows[0].filepath) {
+            const url = fileResult.rows[0].filepath;
+            const publicId = path.parse(url).name;
+            await cloudinary.uploader.destroy(publicId, {
+                resource_type: "video",
+            });
         }
-        console.log("Email sent: " + info.response);
-    });
-}
+
+        const deleteResult = await pool.query(
+            "DELETE FROM complaints WHERE id = $1",
+            [id]
+        );
+        if (deleteResult.rowCount === 0) {
+            return res.status(404).json({ message: "Complaint not found." });
+        }
+        res.json({ message: "Complaint deleted successfully" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT - Update a complaint's status
+app.put("/api/complaints/:id/status", adminAuthenticator, async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    if (!status || !["open", "resolved"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status provided." });
+    }
+    try {
+        const result = await pool.query(
+            "UPDATE complaints SET status = $1 WHERE id = $2",
+            [status, id]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: "Complaint not found." });
+        }
+        res.json({ message: `Status updated to ${status}` });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // --- Serve Admin Page ---
 app.get("/admin", adminAuthenticator, (req, res) => {
