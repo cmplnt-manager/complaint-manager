@@ -6,125 +6,281 @@
         <title>Submit a Complaint</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
             rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         />
         <style>
             body {
                 font-family: "Inter", sans-serif;
             }
+            .recording {
+                animation: pulse 1.5s infinite;
+            }
+            @keyframes pulse {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+                }
+                70% {
+                    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+                }
+                100% {
+                    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+                }
+            }
         </style>
     </head>
-    <body
-        class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen"
-    >
-        <div
-            class="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 md:p-12"
-        >
-            <div id="form-container">
-                <h1 class="text-3xl font-bold mb-2 text-center text-gray-900">
-                    Complaint Box
-                </h1>
-                <p class="text-center text-gray-500 mb-8">
-                    We value your feedback. Please let us know what's on your
-                    mind.
-                </p>
+    <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+        <div class="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-lg">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                Submit a Complaint
+            </h1>
+            <p class="text-gray-500 mb-6">
+                We value your feedback. Please use the options below.
+            </p>
 
+            <!-- Tabs -->
+            <div class="mb-6 border-b border-gray-200">
+                <nav class="flex space-x-4" aria-label="Tabs">
+                    <button
+                        id="tab-text"
+                        class="tab-btn text-indigo-600 border-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                    >
+                        Text Complaint
+                    </button>
+                    <button
+                        id="tab-voice"
+                        class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                    >
+                        Voice Complaint
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Text Complaint Form -->
+            <div id="text-complaint-form">
                 <form id="complaintForm">
-                    <div class="mb-6">
+                    <div class="mb-4">
                         <label
                             for="complaintText"
-                            class="block mb-2 text-sm font-medium text-gray-700"
-                            >Your Complaint</label
+                            class="block text-sm font-medium text-gray-700 mb-1"
+                            >Your Complaint:</label
                         >
                         <textarea
                             id="complaintText"
+                            name="complaint"
                             rows="6"
-                            class="w-full p-4 bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
                             placeholder="Please describe your issue in detail..."
-                            required
                         ></textarea>
                     </div>
                     <button
                         type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-200 ease-in-out transform hover:-translate-y-0.5"
+                        class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                     >
-                        Submit Complaint
+                        Submit Text Complaint
                     </button>
                 </form>
             </div>
 
-            <!-- Success Message -->
-            <div id="successMessage" class="hidden text-center">
-                <svg
-                    class="mx-auto mb-4 w-16 h-16 text-green-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
-                </svg>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">
-                    Thank You!
-                </h2>
-                <p class="text-gray-600">
-                    Your complaint has been submitted successfully.
-                </p>
-                <button
-                    onclick="resetForm()"
-                    class="mt-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg"
-                >
-                    Submit Another
-                </button>
+            <!-- Voice Complaint Form -->
+            <div id="voice-complaint-form" class="hidden">
+                <div class="text-center">
+                    <p class="text-gray-600 mb-4" id="voice-status">
+                        Press the button to start recording your complaint.
+                    </p>
+                    <div
+                        class="flex justify-center items-center space-x-4 mb-4"
+                    >
+                        <button
+                            id="startRecordingBtn"
+                            class="bg-red-500 text-white rounded-full w-16 h-16 flex items-center justify-center hover:bg-red-600 transition shadow-md"
+                        >
+                            <i class="fas fa-microphone text-2xl"></i>
+                        </button>
+                        <button
+                            id="stopRecordingBtn"
+                            class="bg-gray-700 text-white rounded-full w-16 h-16 flex items-center justify-center hover:bg-gray-800 transition shadow-md"
+                            disabled
+                        >
+                            <i class="fas fa-stop text-2xl"></i>
+                        </button>
+                    </div>
+                    <div id="audioPlayback" class="mb-4 h-14"></div>
+                    <button
+                        id="submitVoiceBtn"
+                        class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        disabled
+                    >
+                        Submit Voice Complaint
+                    </button>
+                </div>
+            </div>
+
+            <div
+                id="successMessage"
+                class="mt-4 p-4 bg-green-100 text-green-800 rounded-lg hidden"
+            >
+                Your complaint has been submitted successfully!
             </div>
         </div>
 
         <script>
-            const form = document.getElementById("complaintForm");
-            const formContainer = document.getElementById("form-container");
+            // --- Tab Functionality ---
+            const tabText = document.getElementById("tab-text");
+            const tabVoice = document.getElementById("tab-voice");
+            const textForm = document.getElementById("text-complaint-form");
+            const voiceForm = document.getElementById("voice-complaint-form");
+
+            tabText.addEventListener("click", () => {
+                textForm.classList.remove("hidden");
+                voiceForm.classList.add("hidden");
+                tabText.classList.add("text-indigo-600", "border-indigo-600");
+                tabVoice.classList.remove(
+                    "text-indigo-600",
+                    "border-indigo-600"
+                );
+                tabVoice.classList.add("text-gray-500");
+            });
+
+            tabVoice.addEventListener("click", () => {
+                voiceForm.classList.remove("hidden");
+                textForm.classList.add("hidden");
+                tabVoice.classList.add("text-indigo-600", "border-indigo-600");
+                tabText.classList.remove(
+                    "text-indigo-600",
+                    "border-indigo-600"
+                );
+                tabText.classList.add("text-gray-500");
+            });
+
+            // --- Text Complaint Submission ---
+            const complaintForm = document.getElementById("complaintForm");
             const successMessage = document.getElementById("successMessage");
 
-            form.addEventListener("submit", async (e) => {
+            complaintForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
                 const complaintText =
                     document.getElementById("complaintText").value;
+                if (!complaintText.trim()) {
+                    alert("Please enter a complaint.");
+                    return;
+                }
+                const response = await fetch("/api/complaints", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ complaint: complaintText }),
+                });
 
-                try {
-                    const response = await fetch("/api/complaints", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ complaint: complaintText }),
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(
-                            errorData.error || "Something went wrong"
-                        );
-                    }
-
-                    // Show success message and hide form
-                    formContainer.classList.add("hidden");
+                if (response.ok) {
                     successMessage.classList.remove("hidden");
-                } catch (error) {
-                    console.error("Submission error:", error);
-                    alert(`Error: ${error.message}`);
+                    complaintForm.reset();
+                    setTimeout(
+                        () => successMessage.classList.add("hidden"),
+                        3000
+                    );
+                } else {
+                    alert("Failed to submit complaint.");
                 }
             });
 
-            function resetForm() {
-                document.getElementById("complaintText").value = "";
-                formContainer.classList.remove("hidden");
-                successMessage.classList.add("hidden");
-            }
+            // --- Voice Complaint Functionality ---
+            const startRecordingBtn =
+                document.getElementById("startRecordingBtn");
+            const stopRecordingBtn =
+                document.getElementById("stopRecordingBtn");
+            const submitVoiceBtn = document.getElementById("submitVoiceBtn");
+            const voiceStatus = document.getElementById("voice-status");
+            const audioPlayback = document.getElementById("audioPlayback");
+
+            let mediaRecorder;
+            let audioChunks = [];
+            let audioBlob = null;
+
+            startRecordingBtn.addEventListener("click", async () => {
+                if (
+                    !navigator.mediaDevices ||
+                    !navigator.mediaDevices.getUserMedia
+                ) {
+                    alert("Your browser does not support audio recording.");
+                    return;
+                }
+                audioChunks = [];
+                audioBlob = null;
+                audioPlayback.innerHTML = "";
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: true,
+                    });
+                    mediaRecorder = new MediaRecorder(stream);
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const mimeType = mediaRecorder.mimeType || "audio/webm";
+                        audioBlob = new Blob(audioChunks, { type: mimeType });
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        const audio = new Audio(audioUrl);
+                        audio.controls = true;
+                        audioPlayback.appendChild(audio);
+
+                        submitVoiceBtn.disabled = false;
+                        voiceStatus.textContent =
+                            "Recording stopped. Preview or submit.";
+                        startRecordingBtn.classList.remove("recording");
+                        stream.getTracks().forEach((track) => track.stop());
+                    };
+
+                    mediaRecorder.start();
+                    startRecordingBtn.disabled = true;
+                    stopRecordingBtn.disabled = false;
+                    submitVoiceBtn.disabled = true;
+                    voiceStatus.textContent = "Recording in progress...";
+                    startRecordingBtn.classList.add("recording");
+                } catch (err) {
+                    console.error("Error accessing microphone:", err);
+                    voiceStatus.textContent =
+                        "Could not access microphone. Please grant permission.";
+                }
+            });
+
+            stopRecordingBtn.addEventListener("click", () => {
+                if (mediaRecorder && mediaRecorder.state === "recording") {
+                    mediaRecorder.stop();
+                    startRecordingBtn.disabled = false;
+                    stopRecordingBtn.disabled = true;
+                }
+            });
+
+            submitVoiceBtn.addEventListener("click", async () => {
+                if (!audioBlob) return;
+                const formData = new FormData();
+                formData.append("complaint", audioBlob, "complaint.webm");
+
+                submitVoiceBtn.disabled = true;
+                submitVoiceBtn.textContent = "Uploading...";
+
+                const response = await fetch("/api/complaints/voice", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                submitVoiceBtn.textContent = "Submit Voice Complaint";
+
+                if (response.ok) {
+                    successMessage.classList.remove("hidden");
+                    audioPlayback.innerHTML = "";
+                    setTimeout(
+                        () => successMessage.classList.add("hidden"),
+                        3000
+                    );
+                } else {
+                    alert("Failed to submit voice complaint.");
+                    submitVoiceBtn.disabled = false;
+                }
+            });
         </script>
     </body>
 </html>
