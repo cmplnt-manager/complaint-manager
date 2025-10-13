@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ta">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Admin - Complaint Viewer</title>
+        <title>நிர்வாகம் - புகார் மேலாண்மை</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             body {
@@ -64,13 +64,13 @@
     <body class="bg-gray-100 p-4 sm:p-8">
         <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">
-                Admin Dashboard
+                நிர்வாகி டாஷ்போர்டு
             </h1>
             <p class="text-gray-600 mb-6">
-                All submitted complaints are listed below.
+                சமர்ப்பிக்கப்பட்ட அனைத்து புகார்களும் கீழே பட்டியலிடப்பட்டுள்ளன.
             </p>
             <div id="complaint-list">
-                <p>Loading complaints...</p>
+                <p>புகார்கள் ஏற்றப்படுகின்றன...</p>
             </div>
         </div>
 
@@ -82,21 +82,19 @@
                     const response = await fetch("/api/complaints");
                     if (response.status === 401) {
                         alert(
-                            "Authentication failed. Please refresh and enter correct credentials."
+                            "அங்கீகாரம் தோல்வியடைந்தது. தயவுசெய்து புதுப்பித்து சரியான சான்றுகளை உள்ளிடவும்."
                         );
                         return;
                     }
                     if (!response.ok) {
-                        throw new Error(
-                            `HTTP error! status: ${response.status}`
-                        );
+                        throw new Error(`HTTP பிழை! நிலை: ${response.status}`);
                     }
                     const complaints = await response.json();
                     displayComplaints(complaints);
                 } catch (error) {
-                    console.error("Failed to fetch complaints:", error);
+                    console.error("புகார்களைப் பெறுவதில் தோல்வி:", error);
                     document.getElementById("complaint-list").innerHTML =
-                        '<p class="text-red-500">Failed to load complaints.</p>';
+                        '<p class="text-red-500">புகார்களை ஏற்ற முடியவில்லை.</p>';
                 }
             }
 
@@ -106,17 +104,17 @@
 
                 if (complaints.length === 0) {
                     list.innerHTML =
-                        "<p>No complaints have been submitted yet.</p>";
+                        "<p>இதுவரை எந்த புகாரும் சமர்ப்பிக்கப்படவில்லை.</p>";
                     return;
                 }
 
-                // Sort complaints to show 'resolved' at the bottom
+                // 'தீர்வு' புகார்களை கீழே காட்ட வரிசைப்படுத்தவும்
                 complaints.sort((a, b) => {
                     if (a.status === "resolved" && b.status !== "resolved")
                         return 1;
                     if (a.status !== "resolved" && b.status === "resolved")
                         return -1;
-                    return b.id - a.id; // Show newest first for same-status items
+                    return b.id - a.id; // ஒரே நிலையில் உள்ள புகார்களுக்கு புதியதை முதலில் காட்டவும்
                 });
 
                 complaints.forEach((complaint) => {
@@ -128,32 +126,31 @@
                     }
 
                     let contentHtml = "";
-                    // CORRECTED THIS LINE: Used .filepath (lowercase) instead of .filePath
                     if (complaint.type === "voice" && complaint.filepath) {
                         contentHtml = `
-                        <p class="font-semibold">Voice Complaint:</p>
+                        <p class="font-semibold">குரல் வழி புகார்:</p>
                         <audio controls src="${complaint.filepath}"></audio>
                     `;
                     } else {
                         contentHtml = `<p>${
-                            complaint.complaint || "No text content."
+                            complaint.complaint || "உரை உள்ளடக்கம் இல்லை."
                         }</p>`;
                     }
 
                     let resolveButtonHtml = "";
                     if (complaint.status === "open") {
-                        resolveButtonHtml = `<button onclick="updateStatus(${complaint.id}, 'resolved')" class="btn-resolve">Mark as Resolved</button>`;
+                        resolveButtonHtml = `<button onclick="updateStatus(${complaint.id}, 'resolved')" class="btn-resolve">தீர்வு கண்டதாக குறி</button>`;
                     } else {
-                        resolveButtonHtml = `<button onclick="updateStatus(${complaint.id}, 'open')" class="btn-reopen">Re-open</button>`;
+                        resolveButtonHtml = `<button onclick="updateStatus(${complaint.id}, 'open')" class="btn-reopen">மீண்டும் திற</button>`;
                     }
 
                     item.innerHTML = `
                     <div class="content">
-                        <p class="text-sm text-gray-500 mb-2"><strong>ID:</strong> ${complaint.id} | <strong>Logged:</strong> ${complaint.timestamp}</p>
+                        <p class="text-sm text-gray-500 mb-2"><strong>ID:</strong> ${complaint.id} | <strong>பதிவு செய்யப்பட்டது:</strong> ${complaint.timestamp}</p>
                         ${contentHtml}
                     </div>
                     <div class="actions flex space-x-2">
-                        <button onclick="deleteComplaint(${complaint.id})" class="btn-delete">Delete</button>
+                        <button onclick="deleteComplaint(${complaint.id})" class="btn-delete">நீக்கு</button>
                         ${resolveButtonHtml}
                     </div>
                 `;
@@ -162,22 +159,18 @@
             }
 
             async function deleteComplaint(id) {
-                if (
-                    !confirm(
-                        `Are you sure you want to delete complaint #${id}?`
-                    )
-                ) {
+                if (!confirm(`புகார் #${id} ஐ நீக்க விரும்புகிறீர்களா?`)) {
                     return;
                 }
                 try {
                     const response = await fetch(`/api/complaints/${id}`, {
                         method: "DELETE",
                     });
-                    if (!response.ok) throw new Error("Failed to delete.");
+                    if (!response.ok) throw new Error("நீக்க முடியவில்லை.");
                     document.getElementById(`complaint-${id}`).remove();
                 } catch (error) {
-                    console.error("Delete error:", error);
-                    alert("Could not delete the complaint.");
+                    console.error("நீக்கும்போது பிழை:", error);
+                    alert("புகாரை நீக்க முடியவில்லை.");
                 }
             }
 
@@ -192,11 +185,11 @@
                         }
                     );
                     if (!response.ok)
-                        throw new Error("Failed to update status.");
-                    fetchComplaints(); // Refresh the list to re-sort and re-style
+                        throw new Error("நிலையை புதுப்பிக்க முடியவில்லை.");
+                    fetchComplaints(); // பட்டியலைப் புதுப்பித்து மறுசீரமைக்க
                 } catch (error) {
-                    console.error("Update status error:", error);
-                    alert("Could not update the complaint status.");
+                    console.error("நிலையை புதுப்பிக்கும்போது பிழை:", error);
+                    alert("புகாரின் நிலையை புதுப்பிக்க முடியவில்லை.");
                 }
             }
         </script>

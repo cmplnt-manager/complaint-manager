@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ta">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Submit a Complaint</title>
+        <title>புகாரைச் சமர்ப்பிக்கவும்</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link
             rel="stylesheet"
@@ -32,10 +32,11 @@
     <body class="bg-gray-100 flex items-center justify-center min-h-screen">
         <div class="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-lg">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">
-                Submit a Complaint
+                புகாரைச் சமர்ப்பிக்கவும்
             </h1>
             <p class="text-gray-500 mb-6">
-                We value your feedback. Please use the options below.
+                உங்கள் கருத்தை நாங்கள் மதிக்கிறோம். தயவுசெய்து கீழே உள்ள
+                விருப்பங்களைப் பயன்படுத்தவும்.
             </p>
 
             <!-- Tabs -->
@@ -45,13 +46,13 @@
                         id="tab-text"
                         class="tab-btn text-indigo-600 border-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
                     >
-                        Text Complaint
+                        உரை வழி புகார்
                     </button>
                     <button
                         id="tab-voice"
                         class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
                     >
-                        Voice Complaint
+                        குரல் வழி புகார்
                     </button>
                 </nav>
             </div>
@@ -63,21 +64,21 @@
                         <label
                             for="complaintText"
                             class="block text-sm font-medium text-gray-700 mb-1"
-                            >Your Complaint:</label
+                            >உங்கள் புகார்:</label
                         >
                         <textarea
                             id="complaintText"
                             name="complaint"
                             rows="6"
                             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                            placeholder="Please describe your issue in detail..."
+                            placeholder="தயவுசெய்து உங்கள் சிக்கலை விரிவாக விவரிக்கவும்..."
                         ></textarea>
                     </div>
                     <button
                         type="submit"
                         class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                     >
-                        Submit Text Complaint
+                        உரை புகாரை சமர்ப்பிக்கவும்
                     </button>
                 </form>
             </div>
@@ -86,7 +87,7 @@
             <div id="voice-complaint-form" class="hidden">
                 <div class="text-center">
                     <p class="text-gray-600 mb-4" id="voice-status">
-                        Press the button to start recording your complaint.
+                        உங்கள் புகாரைப் பதிவுசெய்ய பொத்தானை அழுத்தவும்.
                     </p>
                     <div
                         class="flex justify-center items-center space-x-4 mb-4"
@@ -111,7 +112,7 @@
                         class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                         disabled
                     >
-                        Submit Voice Complaint
+                        குரல் புகாரை சமர்ப்பிக்கவும்
                     </button>
                 </div>
             </div>
@@ -120,7 +121,7 @@
                 id="successMessage"
                 class="mt-4 p-4 bg-green-100 text-green-800 rounded-lg hidden"
             >
-                Your complaint has been submitted successfully!
+                உங்கள் புகார் வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது!
             </div>
         </div>
 
@@ -162,7 +163,7 @@
                 const complaintText =
                     document.getElementById("complaintText").value;
                 if (!complaintText.trim()) {
-                    alert("Please enter a complaint.");
+                    alert("தயவுசெய்து ஒரு புகாரை உள்ளிடவும்.");
                     return;
                 }
                 const response = await fetch("/api/complaints", {
@@ -179,7 +180,7 @@
                         3000
                     );
                 } else {
-                    alert("Failed to submit complaint.");
+                    alert("புகாரைச் சமர்ப்பிக்க முடியவில்லை.");
                 }
             });
 
@@ -201,7 +202,7 @@
                     !navigator.mediaDevices ||
                     !navigator.mediaDevices.getUserMedia
                 ) {
-                    alert("Your browser does not support audio recording.");
+                    alert("உங்கள் உலாவி ஆடியோ பதிவை ஆதரிக்கவில்லை.");
                     return;
                 }
                 audioChunks = [];
@@ -228,7 +229,7 @@
 
                         submitVoiceBtn.disabled = false;
                         voiceStatus.textContent =
-                            "Recording stopped. Preview or submit.";
+                            "பதிவு நிறுத்தப்பட்டது. மாதிரிக்காட்சி அல்லது சமர்ப்பிக்கவும்.";
                         startRecordingBtn.classList.remove("recording");
                         stream.getTracks().forEach((track) => track.stop());
                     };
@@ -237,12 +238,12 @@
                     startRecordingBtn.disabled = true;
                     stopRecordingBtn.disabled = false;
                     submitVoiceBtn.disabled = true;
-                    voiceStatus.textContent = "Recording in progress...";
+                    voiceStatus.textContent = "பதிவு செயலில் உள்ளது...";
                     startRecordingBtn.classList.add("recording");
                 } catch (err) {
-                    console.error("Error accessing microphone:", err);
+                    console.error("மைக்ரோஃபோனை அணுகுவதில் பிழை:", err);
                     voiceStatus.textContent =
-                        "Could not access microphone. Please grant permission.";
+                        "மைக்ரோஃபோனை அணுக முடியவில்லை. தயவுசெய்து அனுமதி வழங்கவும்.";
                 }
             });
 
@@ -260,14 +261,14 @@
                 formData.append("complaint", audioBlob, "complaint.webm");
 
                 submitVoiceBtn.disabled = true;
-                submitVoiceBtn.textContent = "Uploading...";
+                submitVoiceBtn.textContent = "பதிவேற்றுகிறது...";
 
                 const response = await fetch("/api/complaints/voice", {
                     method: "POST",
                     body: formData,
                 });
 
-                submitVoiceBtn.textContent = "Submit Voice Complaint";
+                submitVoiceBtn.textContent = "குரல் புகாரை சமர்ப்பிக்கவும்";
 
                 if (response.ok) {
                     successMessage.classList.remove("hidden");
@@ -277,7 +278,7 @@
                         3000
                     );
                 } else {
-                    alert("Failed to submit voice complaint.");
+                    alert("குரல் புகாரை சமர்ப்பிக்க முடியவில்லை.");
                     submitVoiceBtn.disabled = false;
                 }
             });
