@@ -1,0 +1,455 @@
+<!-- public/enterprise-admin.html -->
+<!DOCTYPE html>
+<html lang="ta">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title data-translate="pageTitle">Super Admin Dashboard</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            body {
+                font-family: "Inter", sans-serif;
+            }
+            .enterprise-list-item {
+                cursor: pointer;
+            }
+            /* Toggle Switch Styles */
+            .switch {
+                position: relative;
+                display: inline-block;
+                width: 60px;
+                height: 34px;
+            }
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                transition: 0.4s;
+                border-radius: 34px;
+            }
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 26px;
+                width: 26px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                transition: 0.4s;
+                border-radius: 50%;
+            }
+            input:checked + .slider {
+                background-color: #2196f3;
+            }
+            input:checked + .slider:before {
+                transform: translateX(26px);
+            }
+        </style>
+    </head>
+    <body class="bg-gray-100">
+        <div class="min-h-screen">
+            <nav class="bg-indigo-600">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-center justify-between h-16">
+                        <div class="flex items-center">
+                            <span
+                                class="font-bold text-white"
+                                data-translate="navTitle"
+                                >SaaS Admin Portal</span
+                            >
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <span class="mr-2 font-medium text-white"
+                                    >தமிழ்</span
+                                >
+                                <label class="switch">
+                                    <input
+                                        type="checkbox"
+                                        id="language-toggle"
+                                    />
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="ml-2 font-medium text-white"
+                                    >English</span
+                                >
+                            </div>
+                            <button
+                                id="logout-button"
+                                class="bg-indigo-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+                                data-translate="logout"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <div class="bg-white shadow-lg rounded-lg p-6 mb-8">
+                        <h2
+                            class="text-2xl font-bold text-gray-800 mb-4"
+                            data-translate="manageEnterprisesTitle"
+                        >
+                            Manage Enterprises
+                        </h2>
+                        <form
+                            id="add-enterprise-form"
+                            class="flex items-center space-x-4"
+                        >
+                            <input
+                                type="text"
+                                id="enterprise-name"
+                                required
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline"
+                                placeholder-translate="enterpriseNamePlaceholder"
+                            />
+                            <button
+                                type="submit"
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
+                                data-translate="addEnterpriseBtn"
+                            >
+                                Add Enterprise
+                            </button>
+                        </form>
+                        <div id="enterprise-list" class="mt-6"></div>
+                    </div>
+                </div>
+
+                <div
+                    id="user-management-section"
+                    class="px-4 py-6 sm:px-0 hidden"
+                >
+                    <div class="bg-white shadow-lg rounded-lg p-6">
+                        <h2
+                            id="user-section-title"
+                            class="text-2xl font-bold text-gray-800 mb-4"
+                            data-translate="manageUsersTitle"
+                        >
+                            Manage Users
+                        </h2>
+                        <form id="add-user-form" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <input
+                                    type="text"
+                                    id="user-username"
+                                    required
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline"
+                                    placeholder-translate="usernamePlaceholder"
+                                />
+                                <input
+                                    type="password"
+                                    id="user-password"
+                                    required
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:shadow-outline"
+                                    placeholder-translate="passwordPlaceholder"
+                                />
+                                <button
+                                    type="submit"
+                                    class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+                                    data-translate="addUserBtn"
+                                >
+                                    Add User
+                                </button>
+                            </div>
+                        </form>
+                        <div id="user-list" class="mt-6"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <script>
+            const translations = {
+                ta: {
+                    pageTitle: "சூப்பர் அட்மின் டாஷ்போர்டு",
+                    navTitle: "சாஸ் அட்மின் போர்டல்",
+                    logout: "வெளியேறு",
+                    manageEnterprisesTitle: "நிறுவனங்களை நிர்வகிக்கவும்",
+                    enterpriseNamePlaceholder: "புதிய நிறுவனத்தின் பெயர்",
+                    addEnterpriseBtn: "நிறுவனத்தைச் சேர்",
+                    manageUsersTitle: "பயனர்களை நிர்வகிக்கவும்",
+                    manageUsersFor: (name) =>
+                        `${name}க்கான பயனர்களை நிர்வகிக்கவும்`,
+                    usernamePlaceholder: "புதிய பயனர் பெயர்",
+                    passwordPlaceholder: "கடவுச்சொல்",
+                    addUserBtn: "பயனரைச் சேர்",
+                    delete: "நீக்கு",
+                    role: "பங்கு",
+                    id: "ஐடி",
+                    deleteEnterpriseConfirm: (id) =>
+                        `நிறுவனம் ஐடி ${id}-ஐ நீக்க விரும்புகிறீர்களா?`,
+                    deleteUserConfirm: (id) =>
+                        `பயனர் ஐடி ${id}-ஐ நீக்க விரும்புகிறீர்களா?`,
+                },
+                en: {
+                    pageTitle: "Super Admin Dashboard",
+                    navTitle: "SaaS Admin Portal",
+                    logout: "Logout",
+                    manageEnterprisesTitle: "Manage Enterprises",
+                    enterpriseNamePlaceholder: "New Enterprise Name",
+                    addEnterpriseBtn: "Add Enterprise",
+                    manageUsersTitle: "Manage Users",
+                    manageUsersFor: (name) => `Manage Users for: ${name}`,
+                    usernamePlaceholder: "New User Username",
+                    passwordPlaceholder: "Password",
+                    addUserBtn: "Add User",
+                    delete: "Delete",
+                    role: "Role",
+                    id: "ID",
+                    deleteEnterpriseConfirm: (id) =>
+                        `Are you sure you want to delete enterprise ID ${id}?`,
+                    deleteUserConfirm: (id) =>
+                        `Are you sure you want to delete user ID ${id}?`,
+                },
+            };
+
+            const token = localStorage.getItem("accessToken");
+            let selectedEnterpriseId = null;
+            let currentLang = "ta";
+
+            document.addEventListener("DOMContentLoaded", () => {
+                if (!token) {
+                    window.location.href = "/login";
+                    return;
+                }
+                try {
+                    const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+                    if (tokenPayload.role !== "superadmin") {
+                        window.location.href = "/dashboard";
+                        return;
+                    }
+                } catch (e) {
+                    handleLogout();
+                    return;
+                }
+                const savedLang = localStorage.getItem("language") || "ta";
+                setLanguage(savedLang);
+
+                setupEventListeners();
+                loadEnterprises();
+            });
+
+            function setLanguage(lang) {
+                currentLang = lang;
+                document.documentElement.lang = lang;
+                localStorage.setItem("language", lang);
+                document.getElementById("language-toggle").checked =
+                    lang === "en";
+
+                document.querySelectorAll("[data-translate]").forEach((el) => {
+                    const key = el.getAttribute("data-translate");
+                    if (translations[lang][key])
+                        el.innerText = translations[lang][key];
+                });
+                document
+                    .querySelectorAll("[placeholder-translate]")
+                    .forEach((el) => {
+                        const key = el.getAttribute("placeholder-translate");
+                        if (translations[lang][key])
+                            el.placeholder = translations[lang][key];
+                    });
+
+                // Re-render dynamic content if it's already loaded
+                if (window.enterprisesData)
+                    renderEnterprises(window.enterprisesData);
+                if (window.usersData && selectedEnterpriseId) {
+                    const enterpriseName = window.enterprisesData.find(
+                        (e) => e.id === selectedEnterpriseId
+                    )?.name;
+                    document.getElementById("user-section-title").textContent =
+                        translations[lang].manageUsersFor(enterpriseName);
+                    renderUsers(window.usersData);
+                }
+            }
+
+            function setupEventListeners() {
+                document
+                    .getElementById("logout-button")
+                    .addEventListener("click", handleLogout);
+                document
+                    .getElementById("add-enterprise-form")
+                    .addEventListener("submit", handleAddEnterprise);
+                document
+                    .getElementById("add-user-form")
+                    .addEventListener("submit", handleAddUser);
+                document
+                    .getElementById("language-toggle")
+                    .addEventListener("change", (event) => {
+                        setLanguage(event.target.checked ? "en" : "ta");
+                    });
+            }
+
+            async function fetchWithAuth(url, options = {}) {
+                const headers = {
+                    ...options.headers,
+                    Authorization: `Bearer ${token}`,
+                };
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401 || response.status === 403)
+                    handleLogout();
+                return response;
+            }
+
+            function handleLogout() {
+                localStorage.removeItem("accessToken");
+                window.location.href = "/login";
+            }
+
+            async function loadEnterprises() {
+                const response = await fetchWithAuth("/api/manage/enterprises");
+                if (response.ok) {
+                    const enterprises = await response.json();
+                    window.enterprisesData = enterprises;
+                    renderEnterprises(enterprises);
+                }
+            }
+
+            function renderEnterprises(enterprises) {
+                const lang = currentLang;
+                document.getElementById("enterprise-list").innerHTML =
+                    enterprises
+                        .map(
+                            (e) => `
+                <div class="flex items-center justify-between p-3 border-b hover:bg-gray-50">
+                    <div class="enterprise-list-item w-full" onclick="selectEnterprise(${
+                        e.id
+                    }, '${e.name.replace(/'/g, "\\'")}')">
+                        <span class="font-medium text-gray-700">${e.name}</span>
+                        <span class="text-sm text-gray-500 ml-2">(${
+                            translations[lang].id
+                        }: ${e.id})</span>
+                    </div>
+                    <button onclick="deleteEnterprise(${
+                        e.id
+                    })" class="text-red-500 hover:text-red-700 font-bold">${
+                                translations[lang].delete
+                            }</button>
+                </div>
+            `
+                        )
+                        .join("");
+            }
+
+            async function selectEnterprise(enterpriseId, enterpriseName) {
+                selectedEnterpriseId = enterpriseId;
+                document
+                    .getElementById("user-management-section")
+                    .classList.remove("hidden");
+                document.getElementById("user-section-title").textContent =
+                    translations[currentLang].manageUsersFor(enterpriseName);
+
+                const response = await fetchWithAuth(
+                    `/api/manage/users/${enterpriseId}`
+                );
+                if (response.ok) {
+                    const users = await response.json();
+                    window.usersData = users;
+                    renderUsers(users);
+                }
+            }
+
+            function renderUsers(users) {
+                const lang = currentLang;
+                document.getElementById("user-list").innerHTML = users
+                    .map(
+                        (u) => `
+                <div class="flex items-center justify-between p-3 border-b">
+                    <div>
+                        <span class="font-medium text-gray-700">${u.username}</span>
+                        <span class="text-sm text-gray-500 ml-2">(${translations[lang].role}: ${u.role})</span>
+                    </div>
+                    <button onclick="deleteUser(${u.id})" class="text-red-500 hover:text-red-700 font-bold">${translations[lang].delete}</button>
+                </div>
+            `
+                    )
+                    .join("");
+            }
+
+            async function handleAddEnterprise(e) {
+                e.preventDefault();
+                const nameInput = document.getElementById("enterprise-name");
+                const response = await fetchWithAuth(
+                    "/api/manage/enterprises",
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name: nameInput.value.trim() }),
+                    }
+                );
+                if (response.ok) {
+                    nameInput.value = "";
+                    loadEnterprises();
+                }
+            }
+
+            async function handleAddUser(e) {
+                e.preventDefault();
+                const usernameInput = document.getElementById("user-username");
+                const passwordInput = document.getElementById("user-password");
+                const response = await fetchWithAuth("/api/manage/users", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: usernameInput.value.trim(),
+                        password: passwordInput.value.trim(),
+                        enterpriseId: selectedEnterpriseId,
+                    }),
+                });
+                if (response.ok) {
+                    usernameInput.value = "";
+                    passwordInput.value = "";
+                    const enterpriseName = window.enterprisesData.find(
+                        (ent) => ent.id === selectedEnterpriseId
+                    )?.name;
+                    selectEnterprise(selectedEnterpriseId, enterpriseName);
+                }
+            }
+
+            async function deleteEnterprise(id) {
+                if (
+                    !confirm(
+                        translations[currentLang].deleteEnterpriseConfirm(id)
+                    )
+                )
+                    return;
+                const response = await fetchWithAuth(
+                    `/api/manage/enterprises/${id}`,
+                    { method: "DELETE" }
+                );
+                if (response.ok) {
+                    loadEnterprises();
+                    document
+                        .getElementById("user-management-section")
+                        .classList.add("hidden");
+                }
+            }
+
+            async function deleteUser(id) {
+                if (!confirm(translations[currentLang].deleteUserConfirm(id)))
+                    return;
+                const response = await fetchWithAuth(
+                    `/api/manage/users/${id}`,
+                    { method: "DELETE" }
+                );
+                if (response.ok) {
+                    const enterpriseName = window.enterprisesData.find(
+                        (ent) => ent.id === selectedEnterpriseId
+                    )?.name;
+                    selectEnterprise(selectedEnterpriseId, enterpriseName);
+                }
+            }
+        </script>
+    </body>
+</html>

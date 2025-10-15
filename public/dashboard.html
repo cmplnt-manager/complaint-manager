@@ -1,0 +1,403 @@
+<!-- public/dashboard.html -->
+<!DOCTYPE html>
+<html lang="ta">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title data-translate="pageTitle">நிறுவன டாஷ்போர்டு</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            body {
+                font-family: "Inter", sans-serif;
+            }
+            .complaint-item {
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                background-color: white;
+                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+                    0 1px 2px 0 rgba(0, 0, 0, 0.06);
+                transition: opacity 0.3s ease;
+            }
+            .complaint-item.resolved {
+                opacity: 0.6;
+                background-color: #f7fafc;
+            }
+            .complaint-item.resolved .content p {
+                text-decoration: line-through;
+            }
+            .complaint-item .content {
+                margin-bottom: 1rem;
+            }
+            .complaint-item .actions button {
+                padding: 0.5rem 1rem;
+                border-radius: 0.375rem;
+                border: none;
+                color: white;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+            }
+            .btn-delete {
+                background-color: #ef4444;
+            }
+            .btn-delete:hover {
+                background-color: #dc2626;
+            }
+            .btn-resolve {
+                background-color: #22c55e;
+            }
+            .btn-resolve:hover {
+                background-color: #16a34a;
+            }
+            .btn-reopen {
+                background-color: #f97316;
+            }
+            .btn-reopen:hover {
+                background-color: #ea580c;
+            }
+            audio {
+                width: 100%;
+                margin-top: 0.5rem;
+            }
+            /* Toggle Switch Styles */
+            .switch {
+                position: relative;
+                display: inline-block;
+                width: 60px;
+                height: 34px;
+            }
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                transition: 0.4s;
+                border-radius: 34px;
+            }
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 26px;
+                width: 26px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                transition: 0.4s;
+                border-radius: 50%;
+            }
+            input:checked + .slider {
+                background-color: #2196f3;
+            }
+            input:checked + .slider:before {
+                transform: translateX(26px);
+            }
+        </style>
+    </head>
+    <body class="bg-gray-100">
+        <div class="min-h-screen">
+            <nav class="bg-indigo-600">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-center justify-between h-16">
+                        <div class="flex items-center">
+                            <span
+                                id="welcome-message"
+                                class="font-bold text-white"
+                                data-translate="welcome"
+                            ></span>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <span class="mr-2 font-medium text-white"
+                                    >தமிழ்</span
+                                >
+                                <label class="switch">
+                                    <input
+                                        type="checkbox"
+                                        id="language-toggle"
+                                    />
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="ml-2 font-medium text-white"
+                                    >English</span
+                                >
+                            </div>
+                            <button
+                                id="logout-button"
+                                class="bg-indigo-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+                                data-translate="logout"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <main class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+                <div class="px-4 py-6 sm:px-0">
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h1
+                            class="text-3xl font-bold text-gray-800 mb-2"
+                            data-translate="mainHeading"
+                        >
+                            புகார் டாஷ்போர்டு
+                        </h1>
+                        <p
+                            class="text-gray-600 mb-6"
+                            data-translate="subHeading"
+                        >
+                            உங்கள் நிறுவனத்தின் அனைத்து புகார்களும் கீழே
+                            பட்டியலிடப்பட்டுள்ளன.
+                        </p>
+                        <div id="complaint-list">
+                            <p data-translate="loading">
+                                புகார்கள் ஏற்றப்படுகின்றன...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <script>
+            const translations = {
+                ta: {
+                    pageTitle: "நிறுவன டாஷ்போர்டு",
+                    welcome: (username) => `வணக்கம், ${username}`,
+                    logout: "வெளியேறு",
+                    mainHeading: "புகார் டாஷ்போர்டு",
+                    subHeading:
+                        "உங்கள் நிறுவனத்தின் அனைத்து புகார்களும் கீழே பட்டியலிடப்பட்டுள்ளன.",
+                    loading: "புகார்கள் ஏற்றப்படுகின்றன...",
+                    loadFailed: "புகார்களை ஏற்றத் தவறிவிட்டது.",
+                    noComplaints:
+                        "உங்கள் நிறுவனத்திற்கு இன்னும் எந்த புகாரும் சமர்ப்பிக்கப்படவில்லை.",
+                    voiceComplaint: "குரல் புகார்:",
+                    noTextContent: "உரை உள்ளடக்கம் இல்லை.",
+                    markResolved: "தீர்மானிக்கப்பட்டதாகக் குறிக்கவும்",
+                    reopen: "மீண்டும் திற",
+                    delete: "நீக்கு",
+                    idLabel: "ஐடி:",
+                    loggedLabel: "பதிவு செய்யப்பட்டது:",
+                    deleteConfirm: (id) =>
+                        `#${id} புகாரை நீக்க விரும்புகிறீர்களா?`,
+                    deleteFailed: "நீக்கத் தவறிவிட்டது.",
+                    updateStatusFailed: "நிலையை புதுப்பிக்கத் தவறிவிட்டது.",
+                },
+                en: {
+                    pageTitle: "Enterprise Dashboard",
+                    welcome: (username) => `Welcome, ${username}`,
+                    logout: "Logout",
+                    mainHeading: "Complaint Dashboard",
+                    subHeading:
+                        "All complaints for your enterprise are listed below.",
+                    loading: "Loading complaints...",
+                    loadFailed: "Failed to load complaints.",
+                    noComplaints:
+                        "No complaints have been submitted for your enterprise yet.",
+                    voiceComplaint: "Voice Complaint:",
+                    noTextContent: "No text content.",
+                    markResolved: "Mark as Resolved",
+                    reopen: "Re-open",
+                    delete: "Delete",
+                    idLabel: "ID:",
+                    loggedLabel: "Logged:",
+                    deleteConfirm: (id) =>
+                        `Are you sure you want to delete complaint #${id}?`,
+                    deleteFailed: "Failed to delete.",
+                    updateStatusFailed: "Failed to update status.",
+                },
+            };
+
+            const token = localStorage.getItem("accessToken");
+            let currentLang = "ta";
+            let currentUser = null;
+
+            document.addEventListener("DOMContentLoaded", () => {
+                if (!token) {
+                    window.location.href = "/login";
+                    return;
+                }
+                try {
+                    currentUser = JSON.parse(atob(token.split(".")[1]));
+                } catch (e) {
+                    handleLogout();
+                    return;
+                }
+                const savedLang = localStorage.getItem("language") || "ta";
+                setLanguage(savedLang);
+
+                document
+                    .getElementById("language-toggle")
+                    .addEventListener("change", (event) => {
+                        setLanguage(event.target.checked ? "en" : "ta");
+                    });
+                document
+                    .getElementById("logout-button")
+                    .addEventListener("click", handleLogout);
+
+                fetchComplaints();
+            });
+
+            function setLanguage(lang) {
+                currentLang = lang;
+                document.documentElement.lang = lang;
+                localStorage.setItem("language", lang);
+                document.getElementById("language-toggle").checked =
+                    lang === "en";
+
+                document.querySelectorAll("[data-translate]").forEach((el) => {
+                    const key = el.getAttribute("data-translate");
+                    if (translations[lang][key]) {
+                        const translation = translations[lang][key];
+                        el.innerText =
+                            typeof translation === "function"
+                                ? translation(currentUser.username)
+                                : translation;
+                    }
+                });
+
+                if (window.complaintsData) {
+                    displayComplaints(window.complaintsData);
+                }
+            }
+
+            function handleLogout() {
+                localStorage.removeItem("accessToken");
+                window.location.href = "/login";
+            }
+
+            async function fetchWithAuth(url, options = {}) {
+                const headers = {
+                    ...options.headers,
+                    Authorization: `Bearer ${token}`,
+                };
+                const response = await fetch(url, { ...options, headers });
+                if (response.status === 401 || response.status === 403)
+                    handleLogout();
+                return response;
+            }
+
+            async function fetchComplaints() {
+                try {
+                    const response = await fetchWithAuth("/api/complaints");
+                    if (!response.ok)
+                        throw new Error("Network response was not ok");
+                    const complaints = await response.json();
+                    window.complaintsData = complaints;
+                    displayComplaints(complaints);
+                } catch (error) {
+                    document.getElementById(
+                        "complaint-list"
+                    ).innerHTML = `<p class="text-red-500">${translations[currentLang].loadFailed}</p>`;
+                }
+            }
+
+            function displayComplaints(complaints) {
+                const list = document.getElementById("complaint-list");
+                list.innerHTML = "";
+                const lang = currentLang;
+
+                if (complaints.length === 0) {
+                    list.innerHTML = `<p>${translations[lang].noComplaints}</p>`;
+                    return;
+                }
+
+                complaints.sort((a, b) => {
+                    if (a.status === "resolved" && b.status !== "resolved")
+                        return 1;
+                    if (a.status !== "resolved" && b.status === "resolved")
+                        return -1;
+                    return b.id - a.id;
+                });
+
+                complaints.forEach((complaint) => {
+                    const item = document.createElement("div");
+                    item.className = "complaint-item";
+                    if (complaint.status === "resolved")
+                        item.classList.add("resolved");
+
+                    let contentHtml =
+                        complaint.type === "voice" && complaint.filepath
+                            ? `<p class="font-semibold">${translations[lang].voiceComplaint}</p><audio controls src="${complaint.filepath}"></audio>`
+                            : `<p>${
+                                  complaint.complaint ||
+                                  translations[lang].noTextContent
+                              }</p>`;
+
+                    let resolveButtonText =
+                        complaint.status === "open"
+                            ? translations[lang].markResolved
+                            : translations[lang].reopen;
+                    let resolveButtonClass =
+                        complaint.status === "open"
+                            ? "btn-resolve"
+                            : "btn-reopen";
+                    let newStatus =
+                        complaint.status === "open" ? "resolved" : "open";
+
+                    item.innerHTML = `
+                    <div class="content">${contentHtml}</div>
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm text-gray-500">
+                            <strong>${translations[lang].idLabel}</strong> ${
+                        complaint.id
+                    } |
+                            <strong>${
+                                translations[lang].loggedLabel
+                            }</strong> ${complaint.timestamp || "N/A"}
+                        </p>
+                        <div class="actions space-x-2">
+                            <button onclick="updateStatus(${
+                                complaint.id
+                            }, '${newStatus}')" class="${resolveButtonClass}">${resolveButtonText}</button>
+                            <button onclick="deleteComplaint(${
+                                complaint.id
+                            })" class="btn-delete">${
+                        translations[lang].delete
+                    }</button>
+                        </div>
+                    </div>`;
+                    list.appendChild(item);
+                });
+            }
+
+            async function deleteComplaint(id) {
+                if (!confirm(translations[currentLang].deleteConfirm(id)))
+                    return;
+                const response = await fetchWithAuth(`/api/complaints/${id}`, {
+                    method: "DELETE",
+                });
+                if (response.ok) {
+                    fetchComplaints();
+                } else {
+                    alert(translations[currentLang].deleteFailed);
+                }
+            }
+
+            async function updateStatus(id, newStatus) {
+                const response = await fetchWithAuth(
+                    `/api/complaints/${id}/status`,
+                    {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ status: newStatus }),
+                    }
+                );
+                if (response.ok) {
+                    fetchComplaints();
+                } else {
+                    alert(translations[currentLang].updateStatusFailed);
+                }
+            }
+        </script>
+    </body>
+</html>

@@ -1,286 +1,393 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="ta">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>புகாரைச் சமர்ப்பிக்கவும்</title>
+        <title data-translate="pageTitle">புகார் சமர்ப்பிப்பு</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-        />
         <style>
             body {
                 font-family: "Inter", sans-serif;
             }
-            .recording {
-                animation: pulse 1.5s infinite;
+            /* Toggle Switch Styles */
+            .switch {
+                position: relative;
+                display: inline-block;
+                width: 60px;
+                height: 34px;
             }
-            @keyframes pulse {
-                0% {
-                    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-                }
-                70% {
-                    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
-                }
-                100% {
-                    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-                }
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .slider {
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: #ccc;
+                transition: 0.4s;
+                border-radius: 34px;
+            }
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 26px;
+                width: 26px;
+                left: 4px;
+                bottom: 4px;
+                background-color: white;
+                transition: 0.4s;
+                border-radius: 50%;
+            }
+            input:checked + .slider {
+                background-color: #2196f3;
+            }
+            input:checked + .slider:before {
+                transform: translateX(26px);
             }
         </style>
     </head>
-    <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-        <div class="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-lg">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">
-                புகாரைச் சமர்ப்பிக்கவும்
-            </h1>
-            <p class="text-gray-500 mb-6">
-                உங்கள் கருத்தை நாங்கள் மதிக்கிறோம். தயவுசெய்து கீழே உள்ள
-                விருப்பங்களைப் பயன்படுத்தவும்.
-            </p>
-
-            <!-- Tabs -->
-            <div class="mb-6 border-b border-gray-200">
-                <nav class="flex space-x-4" aria-label="Tabs">
-                    <button
-                        id="tab-text"
-                        class="tab-btn text-indigo-600 border-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
-                    >
-                        உரை வழி புகார்
-                    </button>
-                    <button
-                        id="tab-voice"
-                        class="tab-btn text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
-                    >
-                        குரல் வழி புகார்
-                    </button>
-                </nav>
+    <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+        <div class="w-full max-w-lg">
+            <!-- Language Toggle -->
+            <div class="flex items-center justify-end mb-2">
+                <span class="mr-2 font-medium text-gray-700">தமிழ்</span>
+                <label class="switch">
+                    <input type="checkbox" id="language-toggle" />
+                    <span class="slider"></span>
+                </label>
+                <span class="ml-2 font-medium text-gray-700">English</span>
             </div>
 
-            <!-- Text Complaint Form -->
-            <div id="text-complaint-form">
-                <form id="complaintForm">
-                    <div class="mb-4">
-                        <label
-                            for="complaintText"
-                            class="block text-sm font-medium text-gray-700 mb-1"
-                            >உங்கள் புகார்:</label
-                        >
-                        <textarea
-                            id="complaintText"
-                            name="complaint"
-                            rows="6"
-                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
-                            placeholder="தயவுசெய்து உங்கள் சிக்கலை விரிவாக விவரிக்கவும்..."
-                        ></textarea>
-                    </div>
+            <div class="bg-white shadow-lg rounded-lg p-8">
+                <h1
+                    class="text-3xl font-bold text-center text-gray-800 mb-2"
+                    data-translate="mainHeading"
+                >
+                    புகார் பெட்டி
+                </h1>
+                <p
+                    class="text-center text-gray-600 mb-8"
+                    data-translate="subHeading"
+                >
+                    உங்கள் புகார்களை இங்கே சமர்ப்பிக்கவும். குரல் அல்லது உரை
+                    மூலம் சமர்ப்பிக்கலாம்.
+                </p>
+
+                <!-- Text Complaint Form -->
+                <form id="text-complaint-form" class="mb-8">
+                    <label
+                        for="complaint-text"
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                        data-translate="textLabel"
+                        >உங்கள் புகாரை உள்ளிடவும்:</label
+                    >
+                    <textarea
+                        id="complaint-text"
+                        rows="4"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-4"
+                        required
+                    ></textarea>
                     <button
                         type="submit"
-                        class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        data-translate="submitTextBtn"
                     >
                         உரை புகாரை சமர்ப்பிக்கவும்
                     </button>
                 </form>
-            </div>
 
-            <!-- Voice Complaint Form -->
-            <div id="voice-complaint-form" class="hidden">
-                <div class="text-center">
-                    <p class="text-gray-600 mb-4" id="voice-status">
-                        உங்கள் புகாரைப் பதிவுசெய்ய பொத்தானை அழுத்தவும்.
-                    </p>
-                    <div
-                        class="flex justify-center items-center space-x-4 mb-4"
+                <!-- Voice Complaint Section -->
+                <div class="border-t pt-6">
+                    <h2
+                        class="text-xl font-semibold text-center text-gray-700 mb-4"
+                        data-translate="voiceHeading"
                     >
+                        அல்லது, ஒரு குரல் புகாரை பதிவு செய்யவும்
+                    </h2>
+                    <div class="flex items-center justify-center space-x-4">
                         <button
-                            id="startRecordingBtn"
-                            class="bg-red-500 text-white rounded-full w-16 h-16 flex items-center justify-center hover:bg-red-600 transition shadow-md"
+                            id="record-button"
+                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-5 rounded-full flex items-center transition-transform transform hover:scale-105"
                         >
-                            <i class="fas fa-microphone text-2xl"></i>
+                            <svg
+                                class="w-6 h-6"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                                ></path>
+                            </svg>
+                            <span class="ml-2" data-translate="recordBtn"
+                                >பதிவு</span
+                            >
                         </button>
                         <button
-                            id="stopRecordingBtn"
-                            class="bg-gray-700 text-white rounded-full w-16 h-16 flex items-center justify-center hover:bg-gray-800 transition shadow-md"
-                            disabled
+                            id="stop-button"
+                            class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-5 rounded-full flex items-center transition-transform transform hover:scale-105 hidden"
                         >
-                            <i class="fas fa-stop text-2xl"></i>
+                            <svg
+                                class="w-6 h-6"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clip-rule="evenodd"
+                                ></path>
+                            </svg>
+                            <span class="ml-2" data-translate="stopBtn"
+                                >நிறுத்து</span
+                            >
                         </button>
                     </div>
-                    <div id="audioPlayback" class="mb-4 h-14"></div>
-                    <button
-                        id="submitVoiceBtn"
-                        class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                        disabled
-                    >
-                        குரல் புகாரை சமர்ப்பிக்கவும்
-                    </button>
+                    <div id="audio-playback" class="mt-6 hidden">
+                        <p
+                            class="text-center font-medium mb-2"
+                            data-translate="yourRecording"
+                        >
+                            உங்கள் பதிவு:
+                        </p>
+                        <audio
+                            id="audio-player"
+                            controls
+                            class="w-full"
+                        ></audio>
+                        <button
+                            id="submit-voice-button"
+                            class="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                            data-translate="submitVoiceBtn"
+                        >
+                            குரல் புகாரை சமர்ப்பிக்கவும்
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <div
-                id="successMessage"
-                class="mt-4 p-4 bg-green-100 text-green-800 rounded-lg hidden"
-            >
-                உங்கள் புகார் வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது!
+                <p
+                    id="status-message"
+                    class="mt-6 text-center text-sm font-medium"
+                ></p>
             </div>
         </div>
 
         <script>
-            // --- Tab Functionality ---
-            const tabText = document.getElementById("tab-text");
-            const tabVoice = document.getElementById("tab-voice");
-            const textForm = document.getElementById("text-complaint-form");
-            const voiceForm = document.getElementById("voice-complaint-form");
+            const translations = {
+                ta: {
+                    pageTitle: "புகார் சமர்ப்பிப்பு",
+                    mainHeading: "புகார் பெட்டி",
+                    subHeading:
+                        "உங்கள் புகார்களை இங்கே சமர்ப்பிக்கவும். குரல் அல்லது உரை மூலம் சமர்ப்பிக்கலாம்.",
+                    textLabel: "உங்கள் புகாரை உள்ளிடவும்:",
+                    submitTextBtn: "உரை புகாரை சமர்ப்பிக்கவும்",
+                    voiceHeading: "அல்லது, ஒரு குரல் புகாரை பதிவு செய்யவும்",
+                    recordBtn: "பதிவு",
+                    stopBtn: "நிறுத்து",
+                    yourRecording: "உங்கள் பதிவு:",
+                    submitVoiceBtn: "குரல் புகாரை சமர்ப்பிக்கவும்",
+                    statusSubmitting: "சமர்ப்பிக்கப்படுகிறது...",
+                    statusSuccess: "புகார் வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது!",
+                    statusFailed: "புகாரை சமர்ப்பிக்கத் தவறிவிட்டது.",
+                    noEnterprise: "நிறுவன ஐடி காணவில்லை. URL செல்லுபடியாகாது.",
+                    micError:
+                        "மைக்ரோஃபோனை அணுக முடியவில்லை. தயவுசெய்து அனுமதிகளை சரிபார்க்கவும்.",
+                },
+                en: {
+                    pageTitle: "Complaint Submission",
+                    mainHeading: "Complaint Box",
+                    subHeading:
+                        "Submit your complaints here. You can submit via voice or text.",
+                    textLabel: "Enter your complaint:",
+                    submitTextBtn: "Submit Text Complaint",
+                    voiceHeading: "Or, Record a Voice Complaint",
+                    recordBtn: "Record",
+                    stopBtn: "Stop",
+                    yourRecording: "Your Recording:",
+                    submitVoiceBtn: "Submit Voice Complaint",
+                    statusSubmitting: "Submitting...",
+                    statusSuccess: "Complaint submitted successfully!",
+                    statusFailed: "Failed to submit complaint.",
+                    noEnterprise:
+                        "Enterprise ID is missing. The URL is invalid.",
+                    micError:
+                        "Could not access the microphone. Please check permissions.",
+                },
+            };
 
-            tabText.addEventListener("click", () => {
-                textForm.classList.remove("hidden");
-                voiceForm.classList.add("hidden");
-                tabText.classList.add("text-indigo-600", "border-indigo-600");
-                tabVoice.classList.remove(
-                    "text-indigo-600",
-                    "border-indigo-600"
-                );
-                tabVoice.classList.add("text-gray-500");
-            });
+            document.addEventListener("DOMContentLoaded", () => {
+                const languageToggle =
+                    document.getElementById("language-toggle");
+                let currentLang = "ta";
 
-            tabVoice.addEventListener("click", () => {
-                voiceForm.classList.remove("hidden");
-                textForm.classList.add("hidden");
-                tabVoice.classList.add("text-indigo-600", "border-indigo-600");
-                tabText.classList.remove(
-                    "text-indigo-600",
-                    "border-indigo-600"
-                );
-                tabText.classList.add("text-gray-500");
-            });
+                const setLanguage = (lang) => {
+                    currentLang = lang;
+                    document.documentElement.lang = lang;
+                    document
+                        .querySelectorAll("[data-translate]")
+                        .forEach((el) => {
+                            const key = el.getAttribute("data-translate");
+                            if (translations[lang][key]) {
+                                el.innerText = translations[lang][key];
+                            }
+                        });
+                    localStorage.setItem("language", lang);
+                    languageToggle.checked = lang === "en";
+                };
 
-            // --- Text Complaint Submission ---
-            const complaintForm = document.getElementById("complaintForm");
-            const successMessage = document.getElementById("successMessage");
-
-            complaintForm.addEventListener("submit", async (e) => {
-                e.preventDefault();
-                const complaintText =
-                    document.getElementById("complaintText").value;
-                if (!complaintText.trim()) {
-                    alert("தயவுசெய்து ஒரு புகாரை உள்ளிடவும்.");
-                    return;
-                }
-                const response = await fetch("/api/complaints", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ complaint: complaintText }),
+                languageToggle.addEventListener("change", (event) => {
+                    setLanguage(event.target.checked ? "en" : "ta");
                 });
 
-                if (response.ok) {
-                    successMessage.classList.remove("hidden");
-                    complaintForm.reset();
-                    setTimeout(
-                        () => successMessage.classList.add("hidden"),
-                        3000
-                    );
-                } else {
-                    alert("புகாரைச் சமர்ப்பிக்க முடியவில்லை.");
-                }
-            });
+                const savedLang = localStorage.getItem("language") || "ta";
+                setLanguage(savedLang);
 
-            // --- Voice Complaint Functionality ---
-            const startRecordingBtn =
-                document.getElementById("startRecordingBtn");
-            const stopRecordingBtn =
-                document.getElementById("stopRecordingBtn");
-            const submitVoiceBtn = document.getElementById("submitVoiceBtn");
-            const voiceStatus = document.getElementById("voice-status");
-            const audioPlayback = document.getElementById("audioPlayback");
+                const recordButton = document.getElementById("record-button");
+                const stopButton = document.getElementById("stop-button");
+                const audioPlayback = document.getElementById("audio-playback");
+                const audioPlayer = document.getElementById("audio-player");
+                const submitVoiceButton = document.getElementById(
+                    "submit-voice-button"
+                );
+                const textComplaintForm = document.getElementById(
+                    "text-complaint-form"
+                );
+                const statusMessage = document.getElementById("status-message");
 
-            let mediaRecorder;
-            let audioChunks = [];
-            let audioBlob = null;
+                let mediaRecorder;
+                let audioChunks = [];
 
-            startRecordingBtn.addEventListener("click", async () => {
-                if (
-                    !navigator.mediaDevices ||
-                    !navigator.mediaDevices.getUserMedia
-                ) {
-                    alert("உங்கள் உலாவி ஆடியோ பதிவை ஆதரிக்கவில்லை.");
+                const params = new URLSearchParams(window.location.search);
+                const enterpriseId = params.get("enterprise");
+
+                if (!enterpriseId) {
+                    statusMessage.textContent =
+                        translations[currentLang].noEnterprise;
+                    statusMessage.classList.add("text-red-500");
                     return;
                 }
-                audioChunks = [];
-                audioBlob = null;
-                audioPlayback.innerHTML = "";
 
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        audio: true,
-                    });
-                    mediaRecorder = new MediaRecorder(stream);
+                // --- Text Complaint Submission ---
+                textComplaintForm.addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const complaintText =
+                        document.getElementById("complaint-text").value;
+                    statusMessage.textContent =
+                        translations[currentLang].statusSubmitting;
+                    statusMessage.classList.remove(
+                        "text-green-500",
+                        "text-red-500"
+                    );
 
-                    mediaRecorder.ondataavailable = (event) => {
-                        audioChunks.push(event.data);
-                    };
+                    try {
+                        const response = await fetch(
+                            `/api/complaint-text/${enterpriseId}`,
+                            {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    complaint: complaintText,
+                                }),
+                            }
+                        );
+                        if (!response.ok) throw new Error("Server error");
+                        statusMessage.textContent =
+                            translations[currentLang].statusSuccess;
+                        statusMessage.classList.add("text-green-500");
+                        textComplaintForm.reset();
+                    } catch (error) {
+                        statusMessage.textContent =
+                            translations[currentLang].statusFailed;
+                        statusMessage.classList.add("text-red-500");
+                    }
+                });
 
-                    mediaRecorder.onstop = () => {
-                        const mimeType = mediaRecorder.mimeType || "audio/webm";
-                        audioBlob = new Blob(audioChunks, { type: mimeType });
-                        const audioUrl = URL.createObjectURL(audioBlob);
-                        const audio = new Audio(audioUrl);
-                        audio.controls = true;
-                        audioPlayback.appendChild(audio);
+                // --- Voice Complaint Logic ---
+                recordButton.addEventListener("click", async () => {
+                    try {
+                        const stream =
+                            await navigator.mediaDevices.getUserMedia({
+                                audio: true,
+                            });
+                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder.start();
+                        audioChunks = [];
 
-                        submitVoiceBtn.disabled = false;
-                        voiceStatus.textContent =
-                            "பதிவு நிறுத்தப்பட்டது. மாதிரிக்காட்சி அல்லது சமர்ப்பிக்கவும்.";
-                        startRecordingBtn.classList.remove("recording");
-                        stream.getTracks().forEach((track) => track.stop());
-                    };
+                        recordButton.classList.add("hidden");
+                        stopButton.classList.remove("hidden");
+                        audioPlayback.classList.add("hidden");
 
-                    mediaRecorder.start();
-                    startRecordingBtn.disabled = true;
-                    stopRecordingBtn.disabled = false;
-                    submitVoiceBtn.disabled = true;
-                    voiceStatus.textContent = "பதிவு செயலில் உள்ளது...";
-                    startRecordingBtn.classList.add("recording");
-                } catch (err) {
-                    console.error("மைக்ரோஃபோனை அணுகுவதில் பிழை:", err);
-                    voiceStatus.textContent =
-                        "மைக்ரோஃபோனை அணுக முடியவில்லை. தயவுசெய்து அனுமதி வழங்கவும்.";
-                }
-            });
+                        mediaRecorder.addEventListener(
+                            "dataavailable",
+                            (event) => {
+                                audioChunks.push(event.data);
+                            }
+                        );
 
-            stopRecordingBtn.addEventListener("click", () => {
-                if (mediaRecorder && mediaRecorder.state === "recording") {
+                        mediaRecorder.addEventListener("stop", () => {
+                            const audioBlob = new Blob(audioChunks, {
+                                type: "audio/webm",
+                            });
+                            const audioUrl = URL.createObjectURL(audioBlob);
+                            audioPlayer.src = audioUrl;
+                            audioPlayback.classList.remove("hidden");
+                            stopButton.classList.add("hidden");
+                            recordButton.classList.remove("hidden");
+                        });
+                    } catch (error) {
+                        statusMessage.textContent =
+                            translations[currentLang].micError;
+                        statusMessage.classList.add("text-red-500");
+                    }
+                });
+
+                stopButton.addEventListener("click", () => {
                     mediaRecorder.stop();
-                    startRecordingBtn.disabled = false;
-                    stopRecordingBtn.disabled = true;
-                }
-            });
-
-            submitVoiceBtn.addEventListener("click", async () => {
-                if (!audioBlob) return;
-                const formData = new FormData();
-                formData.append("complaint", audioBlob, "complaint.webm");
-
-                submitVoiceBtn.disabled = true;
-                submitVoiceBtn.textContent = "பதிவேற்றுகிறது...";
-
-                const response = await fetch("/api/complaints/voice", {
-                    method: "POST",
-                    body: formData,
                 });
 
-                submitVoiceBtn.textContent = "குரல் புகாரை சமர்ப்பிக்கவும்";
-
-                if (response.ok) {
-                    successMessage.classList.remove("hidden");
-                    audioPlayback.innerHTML = "";
-                    setTimeout(
-                        () => successMessage.classList.add("hidden"),
-                        3000
+                submitVoiceButton.addEventListener("click", async () => {
+                    const audioBlob = new Blob(audioChunks, {
+                        type: "audio/webm",
+                    });
+                    const formData = new FormData();
+                    formData.append("complaint", audioBlob, "recording.webm");
+                    statusMessage.textContent =
+                        translations[currentLang].statusSubmitting;
+                    statusMessage.classList.remove(
+                        "text-green-500",
+                        "text-red-500"
                     );
-                } else {
-                    alert("குரல் புகாரை சமர்ப்பிக்க முடியவில்லை.");
-                    submitVoiceBtn.disabled = false;
-                }
+
+                    try {
+                        const response = await fetch(
+                            `/api/complaint-voice/${enterpriseId}`,
+                            {
+                                method: "POST",
+                                body: formData,
+                            }
+                        );
+                        if (!response.ok) throw new Error("Server error");
+                        statusMessage.textContent =
+                            translations[currentLang].statusSuccess;
+                        statusMessage.classList.add("text-green-500");
+                        audioPlayback.classList.add("hidden");
+                    } catch (error) {
+                        statusMessage.textContent =
+                            translations[currentLang].statusFailed;
+                        statusMessage.classList.add("text-red-500");
+                    }
+                });
             });
         </script>
     </body>
